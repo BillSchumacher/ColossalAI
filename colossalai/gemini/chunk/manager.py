@@ -20,14 +20,14 @@ class ChunkManager:
     def __init__(self, chunk_configuration, init_device: Optional[torch.device] = None) -> None:
 
         self.device = init_device or get_current_device()
-        self.dp_degree_chunk_size_dict: Dict[int, int] = dict()
+        self.dp_degree_chunk_size_dict: Dict[int, int] = {}
         self.kwargs_config = chunk_configuration
         for k, v in self.kwargs_config.items():
             self.dp_degree_chunk_size_dict[k] = v.pop('chunk_size')
             v['init_device'] = self.device
 
-        self.chunk_groups: Dict[str, Deque] = dict()
-        self.tensor_chunk_map: Dict[torch.Tensor, Chunk] = dict()
+        self.chunk_groups: Dict[str, Deque] = {}
+        self.tensor_chunk_map: Dict[torch.Tensor, Chunk] = {}
         self.accessed_chunks: Set[Chunk] = set()
         self.accessed_mem: int = 0
         self.total_mem: Dict[str, int] = {'cpu': 0, 'cuda': 0}
@@ -55,7 +55,7 @@ class ChunkManager:
 
         chunk_size = self.dp_degree_chunk_size_dict[config_key]
         chunk_kwargs = self.kwargs_config[config_key]
-        group_name = "{}_{}".format(group_type, config_key)
+        group_name = f"{group_type}_{config_key}"
         chunk_group = self.__get_chunk_group(group_name)
 
         try:
@@ -172,10 +172,7 @@ class ChunkManager:
         """
         Get all chunks that can be moved.
         """
-        chunk_list = []
-        for chunk in self.accessed_chunks:
-            if chunk.can_release:
-                chunk_list.append(chunk)
+        chunk_list = [chunk for chunk in self.accessed_chunks if chunk.can_release]
         chunk_list.sort(key=lambda x: x.count_id)
         return chunk_list
 
@@ -212,8 +209,7 @@ class ChunkManager:
         ]
         for group_name, group in self.chunk_groups.items():
             msg.append(f'Group {group_name}:\n')
-            for i, chunk in enumerate(group):
-                msg.append(f'[{i}] {chunk}\n')
+            msg.extend(f'[{i}] {chunk}\n' for i, chunk in enumerate(group))
         return ''.join(msg)
 
     def __get_chunk_group(self, group_name: str) -> Deque:

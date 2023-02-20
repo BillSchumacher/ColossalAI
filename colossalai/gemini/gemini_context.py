@@ -8,11 +8,8 @@ class GeminiMemoryManager(object):
         self.states_cls = states_cls
         self._cnter = 0    # the counter of instances
 
-        self.total_mem = dict()
-        self.state_mem = dict()
-        self.state_mem['cpu'] = dict()
-        self.state_mem['cuda'] = dict()
-
+        self.total_mem = {}
+        self.state_mem = {'cpu': {}, 'cuda': {}}
         self.reset()
 
     @property

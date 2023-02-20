@@ -114,5 +114,4 @@ def colo_model_tensor_clone(t: Union[StatefulTensor, torch.Tensor], target_devic
     """
     # TODO() rename this function
     colo_model_data_tensor_move_inline(t, target_device)
-    t_payload = t.payload if isinstance(t, StatefulTensor) else t
-    return t_payload
+    return t.payload if isinstance(t, StatefulTensor) else t

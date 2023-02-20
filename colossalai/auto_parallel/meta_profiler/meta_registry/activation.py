@@ -83,9 +83,12 @@ def softmax_meta_info(*args, **kwargs) -> Tuple[TrainCycleItem, TrainCycleItem, 
     """
     input_tensor = next(
         filter(
-            lambda x:
-            (x.type == OperationDataType.ARG or x.type == OperationDataType.PARAM) and x.name != 'softmax_dim',
-            args)).data
+            lambda x: x.type
+            in [OperationDataType.ARG, OperationDataType.PARAM]
+            and x.name != 'softmax_dim',
+            args,
+        )
+    ).data
     output_tensor = next(filter(lambda x: x.type == OperationDataType.OUTPUT, args)).data
     softmax_dim = next(filter(lambda x: x.name == 'softmax_dim', args)).data
 

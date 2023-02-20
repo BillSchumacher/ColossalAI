@@ -13,10 +13,7 @@ def torch_nn_avgpool1d(self, input):
     l_in = input.shape[-1]
 
     def _convert_int_to_list(item):
-        if isinstance(item, int):
-            return [item] * 1
-        else:
-            return item
+        return [item] * 1 if isinstance(item, int) else item
 
     padding = _convert_int_to_list(self.padding)
     kernel_size = _convert_int_to_list(self.kernel_size)
@@ -36,10 +33,7 @@ def torch_nn_avgpool2d(self, input):
     h_in, w_in = input.shape[-2:]
 
     def _convert_int_to_list(item):
-        if isinstance(item, int):
-            return [item] * 2
-        else:
-            return item
+        return [item] * 2 if isinstance(item, int) else item
 
     padding = _convert_int_to_list(self.padding)
     kernel_size = _convert_int_to_list(self.kernel_size)
@@ -63,10 +57,7 @@ def torch_nn_avgpool3d(self, input):
     d_in, h_in, w_in = input.shape[-3:]
 
     def _convert_int_to_list(item):
-        if isinstance(item, int):
-            return [item] * 3
-        else:
-            return item
+        return [item] * 3 if isinstance(item, int) else item
 
     padding = _convert_int_to_list(self.padding)
     kernel_size = _convert_int_to_list(self.kernel_size)
@@ -92,10 +83,7 @@ def torch_nn_maxpool1d(self, input):
     l_in = input.shape[-1]
 
     def _convert_int_to_list(item):
-        if isinstance(item, int):
-            return [item] * 1
-        else:
-            return item
+        return [item] * 1 if isinstance(item, int) else item
 
     padding = _convert_int_to_list(self.padding)
     dilation = _convert_int_to_list(self.dilation)
@@ -116,10 +104,7 @@ def torch_nn_maxpool2d(self, input):
     h_in, w_in = input.shape[-2:]
 
     def _convert_int_to_list(item):
-        if isinstance(item, int):
-            return [item] * 2
-        else:
-            return item
+        return [item] * 2 if isinstance(item, int) else item
 
     padding = _convert_int_to_list(self.padding)
     dilation = _convert_int_to_list(self.dilation)
@@ -144,10 +129,7 @@ def torch_nn_maxpool3d(self, input):
     d_in, h_in, w_in = input.shape[-3:]
 
     def _convert_int_to_list(item):
-        if isinstance(item, int):
-            return [item] * 3
-        else:
-            return item
+        return [item] * 3 if isinstance(item, int) else item
 
     padding = _convert_int_to_list(self.padding)
     dilation = _convert_int_to_list(self.dilation)

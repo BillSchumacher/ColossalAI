@@ -11,19 +11,14 @@ from colossalai.utils import is_ddp_ignored
 
 
 def safe_div(a, b):
-    if a == 0:
-        return 0
-    return a / b
+    return 0 if a == 0 else a / b
 
 
 def init_chunk_manager(model: nn.Module,
                        init_device: Optional[torch.device] = None,
                        hidden_dim: Optional[int] = None,
                        **kwargs) -> ChunkManager:
-    if hidden_dim:
-        search_interval_byte = hidden_dim
-    else:
-        search_interval_byte = 1024    # defaults to 1kb
+    search_interval_byte = hidden_dim or 1024
     kwargs["search_interval_byte"] = search_interval_byte
 
     dist.barrier()
@@ -46,5 +41,4 @@ def init_chunk_manager(model: nn.Module,
               flush=True)
     dist.barrier()
 
-    chunk_manager = ChunkManager(config_dict, init_device)
-    return chunk_manager
+    return ChunkManager(config_dict, init_device)

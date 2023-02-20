@@ -27,10 +27,7 @@ def operator_getitem(a, b):
     def _slice_attr_convert(attrs):
         new_attrs = {}
         for key, value in attrs.items():
-            if isinstance(value, ColoProxy):
-                new_attrs[key] = value.meta_data
-            else:
-                new_attrs[key] = value
+            new_attrs[key] = value.meta_data if isinstance(value, ColoProxy) else value
         return new_attrs
 
     if isinstance(b, tuple):
@@ -44,17 +41,11 @@ def operator_getitem(a, b):
 
     if isinstance(a, torch.Tensor):
         # TODO: infer shape without performing the computation.
-        if isinstance(b, tuple):
-            b = tuple(map(to_concrete, b))
-        else:
-            b = to_concrete(b)
+        b = tuple(map(to_concrete, b)) if isinstance(b, tuple) else to_concrete(b)
         return operator.getitem(torch.empty_like(a, device="cpu"), b).to("meta")
 
     if isinstance(a, ColoProxy):
         # TODO: infer shape without performing the computation.
-        if isinstance(b, tuple):
-            b = tuple(map(to_concrete, b))
-        else:
-            b = to_concrete(b)
+        b = tuple(map(to_concrete, b)) if isinstance(b, tuple) else to_concrete(b)
         return operator.getitem(torch.empty_like(a.meta_data, device="cpu"), b).to("meta")
     return operator.getitem(a, b)
