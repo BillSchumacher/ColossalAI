@@ -146,13 +146,13 @@ class AutoPlacementPolicy(PlacementPolicy):
 
     @staticmethod
     def set_warmup_non_model_data_ratio(ratio: float) -> None:
-        ratio = float(ratio)
+        ratio = ratio
         assert 0.0 < ratio < 1.0
         AutoPlacementPolicy._warmup_non_model_data_ratio = ratio
 
     @staticmethod
     def set_steady_cuda_cap_ratio(ratio: float) -> None:
-        ratio = float(ratio)
+        ratio = ratio
         assert 0.0 < ratio < 1.0
         AutoPlacementPolicy._steady_cuda_cap_ratio = ratio
 

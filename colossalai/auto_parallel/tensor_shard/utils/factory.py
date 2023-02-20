@@ -27,7 +27,9 @@ def generate_sharding_spec(input_: Union[Node, torch.Tensor], device_mesh: Devic
     """
 
     if isinstance(input_, Node):
-        assert hasattr(input_, '_meta_data'), f'The given node has no attribte _meta_data'
+        assert hasattr(
+            input_, '_meta_data'
+        ), 'The given node has no attribte _meta_data'
         meta_tensor = input_._meta_data
         assert meta_tensor is not None, "The given node's _meta_data attribute is None"
         shape = meta_tensor.shape
@@ -43,8 +45,11 @@ def generate_sharding_spec(input_: Union[Node, torch.Tensor], device_mesh: Devic
         assert shape[
             dim_index] % sharding_size == 0, f'we cannot shard the {dim_index} dimension of tensor into {sharding_size} partitions.'
 
-    sharding_spec = ShardingSpec(device_mesh=device_mesh, entire_shape=shape, dim_partition_dict=dim_partition_dict)
-    return sharding_spec
+    return ShardingSpec(
+        device_mesh=device_mesh,
+        entire_shape=shape,
+        dim_partition_dict=dim_partition_dict,
+    )
 
 
 def generate_resharding_costs(nodes: List[Node],
@@ -75,7 +80,9 @@ def generate_resharding_costs(nodes: List[Node],
             if not isinstance(input_sharding_spec, ShardingSpec):
                 assert isinstance(input_sharding_spec, list), 'only ShardingSpec or List[ShardingSpec] is expected.'
                 input_sharding_spec = input_sharding_spec[index]
-            assert isinstance(input_sharding_spec, ShardingSpec), f'The input node should NOT be a tuple of tensor.'
+            assert isinstance(
+                input_sharding_spec, ShardingSpec
+            ), 'The input node should NOT be a tuple of tensor.'
             try:
                 # compute the resharding cost
                 _, _, total_resharding_cost = shape_consistency_manager.shape_consistency(

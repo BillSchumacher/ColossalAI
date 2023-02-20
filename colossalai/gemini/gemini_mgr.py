@@ -74,9 +74,8 @@ class GeminiManager:
         """
         if self._premade_memstats_:
             return self._memstats
-        else:
-            assert not self._warmup, "Gemini Manager has memstats after warm up! Now is during warmup."
-            return self._mem_stats_collector._memstats
+        assert not self._warmup, "Gemini Manager has memstats after warm up! Now is during warmup."
+        return self._mem_stats_collector._memstats
 
     def pre_iter(self, *args):
         if self._mem_stats_collector and self._warmup:
@@ -116,13 +115,11 @@ class GeminiManager:
         start = time()
         cuda_demand = 0
         for chunk in chunks:
-            if chunk.device_type == 'cuda':
-                if chunk.is_gathered:
-                    pass
-                else:
-                    cuda_demand += chunk.chunk_mem - chunk.shard_mem
-            elif chunk.device_type == 'cpu':
+            if chunk.device_type == 'cpu':
                 cuda_demand += chunk.chunk_mem
+            elif chunk.device_type == 'cuda':
+                if not chunk.is_gathered:
+                    cuda_demand += chunk.chunk_mem - chunk.shard_mem
             else:
                 raise RuntimeError
         self._comp_cuda_demand_time += time() - start

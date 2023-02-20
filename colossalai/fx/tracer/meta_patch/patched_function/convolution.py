@@ -24,24 +24,11 @@ _triple = _ntuple(3, "_triple")
 
 
 def _extract_kwargs(kwargs):
-    if 'stride' in kwargs:
-        stride = kwargs['stride']
-    else:
-        stride = 1
+    stride = kwargs['stride'] if 'stride' in kwargs else 1
     # TODO: process str type padding
-    if 'padding' in kwargs:
-        padding = kwargs['padding']
-    else:
-        padding = 0
-    if 'dilation' in kwargs:
-        dilation = kwargs['dilation']
-    else:
-        dilation = 1
-    if 'output_padding' in kwargs:
-        output_padding = kwargs['output_padding']
-    else:
-        output_padding = 0
-
+    padding = kwargs['padding'] if 'padding' in kwargs else 0
+    dilation = kwargs['dilation'] if 'dilation' in kwargs else 1
+    output_padding = kwargs['output_padding'] if 'output_padding' in kwargs else 0
     return stride, padding, dilation, output_padding
 
 

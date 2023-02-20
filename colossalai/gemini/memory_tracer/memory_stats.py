@@ -12,11 +12,11 @@ class MemStats(object):
         Store the non model data statistics used for Gemini and ZeroOptimizer.
         """
         # (preop_step, List[param])
-        self._step_param_dict = dict()
+        self._step_param_dict = {}
         # (param, List[preop_step])
-        self._param_step_dict = dict()
+        self._param_step_dict = {}
         # (preop_step, non_model_data) non model data used during preop_step ~ (preop_step+1)
-        self._step_nmd_dict = dict()
+        self._step_nmd_dict = {}
         self._param_runtime_order = OrderedParamGenerator()
 
         self._preop_step = 0
@@ -80,10 +80,7 @@ class MemStats(object):
         Returns:
             Optional[List[int]]: a list of int indicates the time step of preop hook.
         """
-        if param not in self._param_step_dict:
-            return None
-        else:
-            return self._param_step_dict[param]
+        return self._param_step_dict[param] if param in self._param_step_dict else None
 
     def param_order(self):
         if self._param_runtime_order.is_empty():

@@ -15,10 +15,10 @@ def _filter_exlarge_params(model: nn.Module, size_dict: Dict[int, List[int]]) ->
     Filter those parameters whose size is too large (more than 3x standard deviations) from others.
     """
     agg_size_list = []
-    for key in size_dict:
-        agg_size_list.extend(size_dict[key])
+    for value in size_dict.values():
+        agg_size_list.extend(value)
 
-    if len(agg_size_list) == 0:
+    if not agg_size_list:
         return
 
     params_size_arr = np.array(agg_size_list)
@@ -27,8 +27,7 @@ def _filter_exlarge_params(model: nn.Module, size_dict: Dict[int, List[int]]) ->
     mean = np.mean(params_size_arr)
     upper_limit = mean + 3 * std
 
-    for key in size_dict:
-        org_list = size_dict[key]
+    for key, org_list in size_dict.items():
         size_dict[key] = list(filter(lambda x: x <= upper_limit, org_list))
 
 
@@ -46,10 +45,7 @@ def _get_unused_byte(size_list: List[int], chunk_size: int) -> int:
 
 
 def _tensor_numel(local_param: ColoParameter, strict_ddp_flag: bool):
-    if strict_ddp_flag:
-        return local_param.numel_global()
-    else:
-        return local_param.numel()
+    return local_param.numel_global() if strict_ddp_flag else local_param.numel()
 
 
 def classify_params_by_dp_degree(param_order: OrderedParamGenerator,
@@ -65,7 +61,7 @@ def classify_params_by_dp_degree(param_order: OrderedParamGenerator,
         Dict[int, List[ColoParameter]]: a dict contains the classification results.
         The keys are dp_degrees and the values are parameters.
     """
-    params_dict: Dict[int, List[ColoParameter]] = dict()
+    params_dict: Dict[int, List[ColoParameter]] = {}
     for param in param_order.generate():
         assert isinstance(param, ColoParameter), "please init model in the ColoInitContext"
         if is_ddp_ignored(param):
@@ -119,10 +115,10 @@ def search_chunk_configuration(
     assert search_range_byte >= 0
 
     params_dict = classify_params_by_dp_degree(param_order, strict_ddp_flag)
-    config_dict: Dict[int, Dict] = dict()
+    config_dict: Dict[int, Dict] = {}
     total_param_size = 0
 
-    size_dict: Dict[int, List[int]] = dict()
+    size_dict: Dict[int, List[int]] = {}
     for dp_degree in params_dict:
         params_list = params_dict[dp_degree]
         size_list = [_tensor_numel(p, strict_ddp_flag) for p in params_list]
@@ -146,10 +142,10 @@ def search_chunk_configuration(
     min_chunk_waste = float('+inf')
     best_chunk_size = start_size
 
-    for chunk_size in range(start_size, start_size + search_range_byte + 1, search_interval_byte):
-        temp_waste = 0
-        for key in size_dict:
-            temp_waste += _get_unused_byte(size_dict[key], chunk_size)
+    for chunk_size in range(best_chunk_size, best_chunk_size + search_range_byte + 1, search_interval_byte):
+        temp_waste = sum(
+            _get_unused_byte(value, chunk_size) for value in size_dict.values()
+        )
         if temp_waste < min_chunk_waste:
             min_chunk_waste = temp_waste
             best_chunk_size = chunk_size

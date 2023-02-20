@@ -126,7 +126,7 @@ class Chunk:
         self.num_tensors = 0
 
         # Record the number of tensors in different states
-        self.tensor_state_cnter: Dict[TensorState, int] = dict()
+        self.tensor_state_cnter: Dict[TensorState, int] = {}
         for state in TensorState:
             self.tensor_state_cnter[state] = 0
 
@@ -158,13 +158,7 @@ class Chunk:
         cuda_memory = 0
         cpu_memory = 0
 
-        if self.chunk_temp is not None:
-            # this chunk is not closed
-            if self.chunk_temp.device.type == 'cuda':
-                cuda_memory += self.chunk_mem
-            else:
-                cpu_memory += self.chunk_mem
-        else:
+        if self.chunk_temp is None:
             if self.is_gathered:
                 cuda_memory += self.chunk_mem
             if self.cuda_shard is not None:
@@ -172,6 +166,10 @@ class Chunk:
             if self.cpu_shard is not None:
                 cpu_memory += self.shard_mem
 
+        elif self.chunk_temp.device.type == 'cuda':
+            cuda_memory += self.chunk_mem
+        else:
+            cpu_memory += self.chunk_mem
         return dict(cuda=cuda_memory, cpu=cpu_memory)
 
     @property
@@ -179,12 +177,7 @@ class Chunk:
         if self.chunk_temp is not None:
             return self.chunk_temp.device.type
         else:
-            if self.is_gathered:
-                return 'cuda'
-            elif self.cuda_shard is not None:
-                return 'cuda'
-            else:
-                return 'cpu'
+            return 'cuda' if self.is_gathered or self.cuda_shard is not None else 'cpu'
 
     @property
     def payload(self) -> torch.Tensor:
@@ -203,10 +196,7 @@ class Chunk:
         # sanity check
         assert self.chunk_temp is None
 
-        if self.is_gathered:
-            return self.chunk_mem
-        else:
-            return self.shard_mem
+        return self.chunk_mem if self.is_gathered else self.shard_mem
 
     @property
     def can_move(self) -> bool:
@@ -429,10 +419,7 @@ class Chunk:
     def get_valid_length(self) -> int:
         """Get the valid length of the chunk's payload.
         """
-        if self.keep_gathered:
-            return self.utilized_size
-        else:
-            return self.valid_end
+        return self.utilized_size if self.keep_gathered else self.valid_end
 
     def init_pair(self, friend_chunk: 'Chunk') -> None:
         """Initialize the paired chunk.

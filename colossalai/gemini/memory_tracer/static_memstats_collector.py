@@ -47,9 +47,7 @@ class StaticMemStatsCollector(ChunkMemStatsCollector):
         interp = MetaInfoProp(gm)
         interp.propagate(*data)
 
-        total_mem = 0
-        for inp in inputs:
-            total_mem += inp.numel() * inp.element_size()
+        total_mem = sum(inp.numel() * inp.element_size() for inp in inputs)
         last_node = None
         module_name_list = [mInfo.module_full_name for mInfo in self.module_info_list]
         for node in gm.graph.nodes:
@@ -67,13 +65,16 @@ class StaticMemStatsCollector(ChunkMemStatsCollector):
         for node in gm.graph.nodes.__reversed__():
             cur_module_mem_fwd = cur_module_mem_fwd + calculate_fwd_tmp(node) + calculate_fwd_out(node)
             cur_module_mem_bwd = cur_module_mem_bwd + node.meta["bwd_mem_tmp"] + node.meta["bwd_mem_out"]
-            if node.op == "call_module":
-                if node.name.endswith("_0") and node.name[:-2] in module_name_list:
-                    self._non_model_data_cuda_list.append(total_mem + grad_module_out + cur_module_mem_bwd)
-                    total_mem = total_mem - cur_module_mem_fwd
-                    cur_module_mem_fwd = 0
-                    cur_module_mem_bwd = 0
-                    grad_module_out = node.meta["bwd_mem_out"]
+            if (
+                node.op == "call_module"
+                and node.name.endswith("_0")
+                and node.name[:-2] in module_name_list
+            ):
+                self._non_model_data_cuda_list.append(total_mem + grad_module_out + cur_module_mem_bwd)
+                total_mem = total_mem - cur_module_mem_fwd
+                cur_module_mem_fwd = 0
+                cur_module_mem_bwd = 0
+                grad_module_out = node.meta["bwd_mem_out"]
 
         self._step_total = len(self._non_model_data_cuda_list)
         self.recover_module()
@@ -96,10 +97,12 @@ class StaticMemStatsCollector(ChunkMemStatsCollector):
         assert isinstance(module, torch.nn.Module)
 
         for child_name, child in module.named_children():
-            self.register_opnodes_recursively(child, child_name, full_name + "_" + child_name, module)
+            self.register_opnodes_recursively(
+                child, child_name, f"{full_name}_{child_name}", module
+            )
 
         # Early return on modules with no parameters.
-        if len(list(module.parameters(recurse=False))) == 0:
+        if not list(module.parameters(recurse=False)):
             return
 
         self.module_info_list.append(ModuleInfos(module, name, full_name[1:], parent_module))
